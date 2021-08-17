@@ -4,6 +4,7 @@ let express = require('express');
 let multer = require('multer');
 let upload = multer();
 let app = express();
+require('dotenv').config()
 
 const router = require('./routes/index');
 const middleware = require('./middleware/index');
