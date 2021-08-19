@@ -39,7 +39,7 @@ module.exports = {
       if (!errors.isEmpty()) {
         return res.status(422).json({ errors: errors.array() });
       }
-      if (!req.files.length) {
+      if (!req.files.length && !req.body.image) {
         return res.status(500).json({ error: 'Image is required'});
       }
 
@@ -54,8 +54,6 @@ module.exports = {
         });
       })
 
-      console.log(req.files)
-
       let product = null
       if (req.body.type) {
         req.body.type = await Type.findOne({ _id: req.body.type })
@@ -64,7 +62,12 @@ module.exports = {
       if (req.body._id) {
         req.body.images = req.files.map(file => 'files/' + file.originalname)
         let query = {'_id': req.body._id};
-        let product = await Product.findOneAndUpdate(query, req.body, { new: true })
+        let data = req.body
+        if (req.body.image) {
+          data.images[0] = req.body.image
+          data.priceWithDiscount = req.body.type && req.body.type.discount ? req.body.price - (req.body.price * req.body.type.discount / 100) : null
+        }
+        let product = await Product.findOneAndUpdate(query, data, { new: true })
         return res.send(product)
       } else {
         let images = req.files.map(file => 'files/' + file.originalname)
