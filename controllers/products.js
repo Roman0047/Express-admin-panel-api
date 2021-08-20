@@ -1,6 +1,7 @@
 const { validationResult, body } = require('express-validator');
 const Product = require('../models/product');
 const Type = require('../models/type');
+const History = require('../models/history');
 const fs = require('fs');
 
 module.exports = {
@@ -25,8 +26,15 @@ module.exports = {
 
   async remove(req, res, next) {
     try {
-      await Product.findByIdAndRemove(req.params._id);
+      let product = await Product.findByIdAndRemove(req.params._id);
 
+      let history = {
+        title: product.title,
+        item_id: product._id,
+        deleted_at: new Date(),
+        type: 'product',
+      }
+      await History.create(history)
       return res.send({ status: true });
     } catch (err) {
       return next(err)
@@ -68,6 +76,13 @@ module.exports = {
           data.priceWithDiscount = req.body.type && req.body.type.discount ? req.body.price - (req.body.price * req.body.type.discount / 100) : null
         }
         let product = await Product.findOneAndUpdate(query, data, { new: true })
+        let history = {
+          title: product.title,
+          item_id: product._id,
+          updated_at: new Date(),
+          type: 'product',
+        }
+        await History.create(history)
         return res.send(product)
       } else {
         let images = req.files.map(file => 'files/' + file.originalname)
@@ -77,7 +92,15 @@ module.exports = {
           created_at: new Date(),
           priceWithDiscount: req.body.type && req.body.type.discount ? req.body.price - (req.body.price * req.body.type.discount / 100) : null
         }
-        await Product.create(product)
+        let createdProduct = await Product.create(product)
+
+        let history = {
+          title: createdProduct.title,
+          item_id: createdProduct._id,
+          created_at: createdProduct.created_at,
+          type: 'product',
+        }
+        await History.create(history)
       }
 
       return res.json(product)
