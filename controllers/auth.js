@@ -73,7 +73,7 @@ module.exports = {
                     }
                     return res.json(data)
                 } else {
-                    return res.status(401).json({ error: 'Not such user!' });
+                    return res.status(401).json({ error: 'Incorrect password!' });
                 }
             });
         } catch (err) {
@@ -104,7 +104,7 @@ module.exports = {
             case 'login': {
                 return [
                     body('email').not()
-                        .isEmpty().withMessage('Name is required'),
+                        .isEmpty().withMessage('Email is required'),
                     body('password').not()
                         .isEmpty().withMessage('Password is required'),
                 ]
